@@ -3,22 +3,36 @@ import numpy as np
 import requests
 import json
 import math
-import time
+from datetime import datetime
 
 
-def getTime():
-    ##code
-    return 
+def fromHourToSecond(curTime):
+    listTimeString=curTime.split(":")
+    listTimeInt=[]
+    for i in listTimeString:
+        listTimeInt.append(int(i))
+        
+    seconds=listTimeInt[0]*3600+listTimeInt[1]*60+listTimeInt[2]    
+    return seconds 
+    
+def getCurTimeSecond():
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    curSecond=fromHourToSecond(current_time)
+    return curSecond
+
+def getTime(prevTime,curTime): 
+    myTime=abs(curTime-prevTime)
+    return myTime
 
 
-def getSpeed(prevPos,curPos):
+def getSpeed(prevPos,curPos,prevTimeSeconds,curTimeSeconds):
     
     x = curPos[0] - prevPos[0]  
     y = curPos[1] - prevPos[1] 
-
+    
     distance = math.sqrt(abs(x * x - y * y))
-
-    return round(distance / getTime())
+    return round(distance / getTime(prevTimeSeconds,curTimeSeconds))
     
 
 
@@ -90,16 +104,31 @@ def get_box_dimensions(outputs, height, width):
 
 
 			
-def draw_labels(boxes, confs, colors, class_ids, classes, img): 
+def draw_labels(boxes, confs, colors, class_ids, classes, img):
+    bigListTime=[]
+    bigListPos=[]
+    speed=0
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
     font = cv2.FONT_HERSHEY_PLAIN
     data = {}
     for i in range(len(boxes)):
         if i in indexes:
+            TimeTuple=[0,0]  
+            PosTuple=[(0,0),(0,0)]
             x, y, w, h = boxes[i]
             label = str(classes[class_ids[i]])
             data[label] = []
-            color = colors[i] 
+            color = colors[i]
+            ##positon and time to calculate the speed
+            interPos=PosTuple[1]
+            PosTuple[0]=interPos
+            PosTuple[1]=(x,y)
+            
+            interTime=TimeTuple[1]
+            TimeTuple[0]=interTime
+            TimeTuple[1]=getCurTimeSecond()
+            
+            speed=getSpeed(PosTuple[0],PosTuple[1],TimeTuple[0],TimeTuple[1])
             center = (round(x + (w / 2)), round(y + (h / 2)))
             data[label].append({
                     'Position': str(center),
@@ -107,6 +136,7 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
             cv2.rectangle(img, (x,y), (x+w, y+h), color, 2)
             cv2.circle(img, center, 5, (0, 0, 255), 5)
             cv2.putText(img, label, (x, y - 5), font, 1, color, 1)
+            cv2.putText(img,str("speed:"+str(speed)), (x,y-10), font, 1, color, 1)
             cv2.imshow("Image", img)
             
             with open('data.txt', 'w') as outfile:
@@ -353,7 +383,7 @@ def yoloWorker(parameterlist):
 
     
 
-image_detect_cam("http://192.168.1.100:8080/photo.jpg","C:/Users/ibrahim.l/Desktop/object-detection-yolo-opencv-master/images/myImage.jpg")
+image_detect_cam("http://192.168.1.101:8080/photo.jpg","C:/Users/ibrahim.l/Desktop/object-detection-yolo-opencv-master/images/myImage.jpg")
 	
 
 cv2.destroyAllWindows()
