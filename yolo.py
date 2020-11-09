@@ -2,6 +2,25 @@ import cv2
 import numpy as np 
 import requests
 import json
+import math
+import time
+
+
+def getTime():
+    ##code
+    return 
+
+
+def getSpeed(prevPos,curPos):
+    
+    x = curPos[0] - prevPos[0]  
+    y = curPos[1] - prevPos[1] 
+
+    distance = math.sqrt(abs(x * x - y * y))
+
+    return round(distance / getTime())
+    
+
 
 
 
