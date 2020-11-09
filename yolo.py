@@ -1,7 +1,7 @@
 import cv2
 import numpy as np 
 import requests
-
+import json
 
 
 
@@ -74,17 +74,28 @@ def get_box_dimensions(outputs, height, width):
 def draw_labels(boxes, confs, colors, class_ids, classes, img): 
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
     font = cv2.FONT_HERSHEY_PLAIN
+    data = {}
     for i in range(len(boxes)):
         if i in indexes:
             x, y, w, h = boxes[i]
             label = str(classes[class_ids[i]])
+            data[label] = []
             color = colors[i] 
             center = (round(x + (w / 2)), round(y + (h / 2)))
+            data[label].append({
+                    'Position': str(center),
+                    })
             cv2.rectangle(img, (x,y), (x+w, y+h), color, 2)
             cv2.circle(img, center, 5, (0, 0, 255), 5)
             cv2.putText(img, label, (x, y - 5), font, 1, color, 1)
             cv2.imshow("Image", img)
-
+            
+            with open('data.txt', 'w') as outfile:
+                json.dump(data, outfile)
+        print(data)
+    cv2.imshow("Image", img)
+        
+            
 
 
 def image_detect_cam(url,path):
@@ -100,35 +111,6 @@ def image_detect_cam(url,path):
             break
 
 
-def webcam_detect():
-	model, classes, colors, output_layers = load_yolo()
-	cap = start_webcam()
-	while True:
-		_, frame = cap.read()
-		height, width, channels = frame.shape
-		blob, outputs = detect_objects(frame, model, output_layers)
-		boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
-		draw_labels(boxes, confs, colors, class_ids, classes, frame)
-		key = cv2.waitKey(1)
-		if key == 27:
-			break
-	cap.release()
-
-
-def start_video(video_path):
-	model, classes, colors, output_layers = load_yolo()
-	#cap = cv2.VideoCapture(video_path)
-    
-	while True:
-		_, frame = cap.read()
-		height, width, channels = frame.shape
-		blob, outputs = detect_objects(frame, model, output_layers)
-		boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
-		draw_labels(boxes, confs, colors, class_ids, classes, frame)
-		key = cv2.waitKey(1)
-		if key == 27:
-			break
-	cap.release()
 
 
 def yoloWorker(parameterlist):
@@ -352,7 +334,7 @@ def yoloWorker(parameterlist):
 
     
 
-image_detect_cam("http://192.168.1.101:8080/photo.jpg","C:/Users/ibrahim.l/Desktop/object-detection-yolo-opencv-master/images/myImage.jpg")
+image_detect_cam("http://192.168.1.100:8080/photo.jpg","C:/Users/ibrahim.l/Desktop/object-detection-yolo-opencv-master/images/myImage.jpg")
 	
 
 cv2.destroyAllWindows()
