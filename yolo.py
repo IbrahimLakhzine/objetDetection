@@ -6,6 +6,7 @@ import math
 from datetime import datetime
 
 
+
 def fromHourToSecond(curTime):
     listTimeString=curTime.split(":")
     listTimeInt=[]
@@ -38,10 +39,13 @@ def getSpeed(prevPos,curPos,prevTimeSeconds,curTimeSeconds):
 
 
 
+
+
 def setImage(url,path):
     receive = requests.get(url)
     with open(path,'wb') as f:
         f.write(receive.content)
+
 
 
 #Load yolo
@@ -60,7 +64,7 @@ def load_yolo():
 def load_image(img_path):
 	# image loading
 	img = cv2.imread(img_path)
-	img = cv2.resize(img,(400,400))
+	img = cv2.resize(img,(1200,600))
 	height, width, channels = img.shape
 	return img, height, width, channels
 
@@ -103,8 +107,10 @@ def get_box_dimensions(outputs, height, width):
 	return boxes, confs, class_ids
 
 
+
 			
 def draw_labels(boxes, confs, colors, class_ids, classes, img):
+    numPerson=0
     bigListTime=[]
     bigListPos=[]
     speed=0
@@ -117,6 +123,11 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
             PosTuple=[(0,0),(0,0)]
             x, y, w, h = boxes[i]
             label = str(classes[class_ids[i]])
+            #count persons on the frame
+            if(label=='person'):
+                numPerson+=1
+                
+                
             data[label] = []
             color = colors[i]
             ##positon and time to calculate the speed
@@ -128,15 +139,19 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
             TimeTuple[0]=interTime
             TimeTuple[1]=getCurTimeSecond()
             
-            speed=getSpeed(PosTuple[0],PosTuple[1],TimeTuple[0],TimeTuple[1])
+            #bigListTime.append(TimeTuple)
+            #bigListPos.append(PosTuple)
+            
+            #speed=getSpeed(PosTuple[0],PosTuple[1],TimeTuple[0],TimeTuple[1])
             center = (round(x + (w / 2)), round(y + (h / 2)))
             data[label].append({
                     'Position': str(center),
+                    
                     })
             cv2.rectangle(img, (x,y), (x+w, y+h), color, 2)
             cv2.circle(img, center, 5, (0, 0, 255), 5)
             cv2.putText(img, label, (x, y - 5), font, 1, color, 1)
-            cv2.putText(img,str("speed:"+str(speed)), (x,y-10), font, 1, color, 1)
+            cv2.putText(img,str("numPersons:"+str(numPerson)), (10,10), font, 1, color, 1)
             cv2.imshow("Image", img)
             
             with open('data.txt', 'w') as outfile:
@@ -145,6 +160,7 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
     cv2.imshow("Image", img)
         
             
+
 
 
 def image_detect_cam(url,path):
@@ -158,6 +174,7 @@ def image_detect_cam(url,path):
         key = cv2.waitKey(1)
         if key == 27:
             break
+
 
 
 
@@ -383,7 +400,7 @@ def yoloWorker(parameterlist):
 
     
 
-image_detect_cam("http://192.168.1.101:8080/photo.jpg","C:/Users/ibrahim.l/Desktop/object-detection-yolo-opencv-master/images/myImage.jpg")
+image_detect_cam("http://192.168.1.100:8080/photo.jpg","C:/Users/ibrahim.l/Desktop/object-detection-yolo-opencv-master/images/myImage.jpg")
 	
 
 cv2.destroyAllWindows()
