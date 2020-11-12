@@ -119,6 +119,10 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
     data = {}
     for i in range(len(boxes)):
         if i in indexes:
+            label = str(classes[class_ids[i]])
+            data[label] = []
+    for i in range(len(boxes)):
+        if i in indexes:
             TimeTuple=[0,0]  
             PosTuple=[(0,0),(0,0)]
             x, y, w, h = boxes[i]
@@ -128,7 +132,7 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
                 numPerson+=1
                 
                 
-            data[label] = []
+            
             color = colors[i]
             ##positon and time to calculate the speed
             interPos=PosTuple[1]
